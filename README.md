@@ -44,7 +44,7 @@ git clone https://github.com/YOUR_USERNAME/jira-ticket-copy-extension.git
 
 3. 「パッケージ化されていない拡張機能を読み込む」をクリック
 
-4. 解凍した `jira-ticket-copy-extension` フォルダを選択
+4. ダウンロードした `jira-ticket-copy-extension` フォルダを選択
 
 5. 拡張機能一覧に「JIRAチケットコピーくん」が表示されれば導入完了
 <img width="1072" height="414" alt="image" src="https://github.com/user-attachments/assets/c68c723e-be03-4115-8ae3-3d8367679061" />
