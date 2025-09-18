@@ -1,8 +1,8 @@
 # JIRAチケットコピーくん
 
 JIRAチケットのタイトルをリンク付きでコピーできるChrome拡張機能です。
-<img width="770" height="126" alt="image" src="https://github.com/user-attachments/assets/ae9ccf4f-8bda-405f-b495-c782f61a7c6e" />
-<img width="688" height="395" alt="image" src="https://github.com/user-attachments/assets/333313de-9161-4b38-9d59-a903066f5a7d" />
+<img width="770" height="126" alt="image" src="https://github.com/user-attachments/assets/4ed530b3-0dc4-432c-b52d-1250e69ee69a" />
+<img width="688" height="395" alt="image" src="https://github.com/user-attachments/assets/e3a6a1f5-3812-4c0a-b880-16df1df804ab" />
 
 # 機能
 
