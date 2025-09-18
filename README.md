@@ -1,12 +1,14 @@
 # JIRAチケットコピーくん
 
 JIRAチケットのタイトルをリンク付きでコピーできるChrome拡張機能です。
+<img width="770" height="126" alt="image" src="https://github.com/user-attachments/assets/ae9ccf4f-8bda-405f-b495-c782f61a7c6e" />
+<img width="688" height="395" alt="image" src="https://github.com/user-attachments/assets/333313de-9161-4b38-9d59-a903066f5a7d" />
 
 # 機能
 
 - JIRAチケットページでタイトルをリンク付きでコピー
 - JIRAのリスト表示（すべての作業など）で各チケットをコピー
-- コピー形式: `[TICKET-123] タイトル`（リンク付き）
+- クリックするとPRタイトルがリンク付きでクリップボードにコピー
 - Slack、Discord、Google Docsなどにペーストすると自動的にリンク付きテキストとして表示
 
 # 対応ブラウザ
@@ -24,6 +26,7 @@ JIRAチケットのタイトルをリンク付きでコピーできるChrome拡�
 
 1. このリポジトリの「Code」ボタンから「Download ZIP」を選択
 2. ダウンロードしたZIPファイルを任意の場所に解凍
+<img width="353" height="325" alt="image" src="https://github.com/user-attachments/assets/13ecb5e2-0ad8-414c-b112-4899306346ad" />
 
 ### 方法2: Gitでクローンする場合
 
@@ -45,24 +48,17 @@ git clone https://github.com/YOUR_USERNAME/jira-ticket-copy-extension.git
 4. 解凍した `jira-ticket-copy-extension` フォルダを選択
 
 5. 拡張機能一覧に「JIRAチケットコピーくん」が表示されれば導入完了
+<img width="1072" height="414" alt="image" src="https://github.com/user-attachments/assets/c68c723e-be03-4115-8ae3-3d8367679061" />
 
 # 使い方
 
-## 個別のチケットページ
-
-1. JIRAチケットページを開く
-2. アクションボタンエリアに表示されるコピーボタンをクリック
-3. チケット番号とタイトルがリンク付きでクリップボードにコピーされます
-
-## リスト表示
-
-1. JIRAの「すべての作業」などのリスト表示を開く
-2. 各チケットの左側に表示されるコピーボタンをクリック
-3. そのチケットの情報がコピーされます
+1. JIRAチケットが表示されているページを開く
+2. 各エリアに表示されるコピーボタンをクリック
+3. お好きな場所にペースト
 
 # ライセンス
 
-MIT
+The Unlicense（パブリックドメイン）
 
 # 開発
 
