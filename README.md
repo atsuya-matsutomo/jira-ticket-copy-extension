@@ -1,13 +1,13 @@
 # JIRAチケットコピーくん
 
-JIRAチケットのタイトルをリンク付きでコピーできるChrome拡張機能です。
+JIRAのチケット名をリンク付きでコピーできるChrome拡張機能です。
 <img width="770" height="126" alt="image" src="https://github.com/user-attachments/assets/4ed530b3-0dc4-432c-b52d-1250e69ee69a" />
 <img width="688" height="395" alt="image" src="https://github.com/user-attachments/assets/e3a6a1f5-3812-4c0a-b880-16df1df804ab" />
 
 # 機能
 
 - JIRAチケットページ/JIRAのリスト表示（すべての作業など）にコピーボタンを追加
-- クリックするとPRタイトルがリンク付きでクリップボードにコピー
+- クリックするとチケット名がリンク付きでクリップボードにコピー
 - Slack、Discord、Google Docsなどにペーストすると自動的にリンク付きテキストとして表示
 
 # 対応ブラウザ
