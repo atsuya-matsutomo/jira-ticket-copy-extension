@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "description": "JIRAのチケットタイトルをリンク付きでコピーします",
   "permissions": [
-    "activeTab",
     "clipboardWrite"
   ],
   "content_scripts": [
