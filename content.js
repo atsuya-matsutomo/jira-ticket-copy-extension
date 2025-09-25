@@ -1,11 +1,15 @@
 // リスト表示の各アイテムにコピーボタンを追加する関数
 function addJiraListCopyButtons() {
-  // JIRAのリスト表示かどうかチェック
-  if (!window.location.pathname.includes('/issues') && !window.location.search.includes('jql=')) {
+  // JIRAのリスト表示またはチケット詳細ページのサブタスクリストかをチェック
+  const isIssueList = window.location.pathname.includes('/issues') || window.location.search.includes('jql=');
+  const isDetailPage = window.location.pathname.includes('/browse/');
+
+  // どちらでもない場合は終了
+  if (!isIssueList && !isDetailPage) {
     return;
   }
 
-  // リストアイテムを探す（テーブルの行）
+  // リストアイテムを探す（テーブルの行）- サブタスクリストも含む
   const listItems = document.querySelectorAll('[data-testid="native-issue-table.ui.issue-row"]');
 
   listItems.forEach(item => {
