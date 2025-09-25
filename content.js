@@ -14,22 +14,36 @@ function addJiraListCopyButtons() {
       return;
     }
 
-    // チケット番号を取得（2番目のtd内のリンクから）
+    // チケット番号を取得（行全体から探す）
     let ticketNumber = null;
-    const mergedCell = item.querySelector('[data-vc="merged-cell"]');
+    let targetCell = null;
 
-    if (mergedCell) {
-      // merged-cell内のリンクから直接チケット番号を取得
-      const keyLink = mergedCell.querySelector('a[href*="/browse/"]');
-      if (keyLink) {
-        const match = keyLink.href.match(/\/browse\/([A-Z]+-\d+)/);
-        if (match) {
-          ticketNumber = match[1];
+    // すべてのセルからチケット番号を探す
+    const cells = item.querySelectorAll('td');
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      const text = cell.textContent || '';
+      const match = text.match(/([A-Z]+-\d+)/);
+      if (match) {
+        ticketNumber = match[1];
+        break;
+      }
+      // リンクからも探す
+      const link = cell.querySelector('a[href*="/browse/"]');
+      if (link) {
+        const linkMatch = link.href.match(/\/browse\/([A-Z]+-\d+)/);
+        if (linkMatch) {
+          ticketNumber = linkMatch[1];
+          break;
         }
       }
     }
 
-    if (!ticketNumber) {
+    // merged-cellを優先的に使用（ボタン配置場所）
+    targetCell = item.querySelector('[data-vc="merged-cell"]') ||
+                 item.querySelector('td:nth-child(2)');
+
+    if (!ticketNumber || !targetCell) {
       return;
     }
 
@@ -84,21 +98,21 @@ function addJiraListCopyButtons() {
       }
     });
 
-    // merged-cellにボタンを挿入
-    if (mergedCell) {
+    // targetCellにボタンを挿入
+    if (targetCell) {
       // 既存のレイアウトを保持しつつボタンを追加
-      mergedCell.style.display = 'flex';
-      mergedCell.style.alignItems = 'center';
-      mergedCell.style.gap = '4px';
+      targetCell.style.display = 'flex';
+      targetCell.style.alignItems = 'center';
+      targetCell.style.gap = '4px';
 
       // パディングの調整
-      const currentPaddingLeft = window.getComputedStyle(mergedCell).paddingLeft;
+      const currentPaddingLeft = window.getComputedStyle(targetCell).paddingLeft;
       if (currentPaddingLeft === '0px') {
-        mergedCell.style.paddingLeft = '8px';
+        targetCell.style.paddingLeft = '8px';
       }
 
       // ボタンを一番最初（左端）に挿入
-      mergedCell.insertBefore(copyBtn, mergedCell.firstChild);
+      targetCell.insertBefore(copyBtn, targetCell.firstChild);
     }
   });
 }
