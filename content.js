@@ -313,9 +313,83 @@ observer.observe(document.body, {
 setTimeout(() => {
   addJiraDetailCopyButton();
   addJiraListCopyButtons();
+  setupCommentHandlers();
 }, 1000);
 addJiraDetailCopyButton();
 addJiraListCopyButtons();
+setupCommentHandlers();
+
+// JIRAのコメント欄でのペースト処理を改善
+function handleCommentPaste(e) {
+  // クリップボードからHTMLデータを取得
+  const htmlData = e.clipboardData.getData('text/html');
+
+  if (htmlData) {
+    // HTMLを解析してリンクを抽出
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlData;
+
+    // リンクを探す
+    const link = tempDiv.querySelector('a');
+    if (link) {
+      e.preventDefault();
+
+      const linkText = link.textContent;
+      const linkUrl = link.href;
+
+      // [XXXX-123] タイトル 形式のテキストかチェック
+      const ticketMatch = linkText.match(/^\[([A-Z]+-\d+)\]\s(.+)$/);
+
+      let insertText;
+      if (ticketMatch) {
+        // JIRAのチケットリンクの場合、JIRA記法で挿入
+        const ticketNumber = ticketMatch[1];
+        const title = ticketMatch[2];
+        insertText = `[${ticketNumber}|${linkUrl}] ${title}`;
+      } else {
+        // 通常のリンクの場合
+        insertText = `[${linkText}|${linkUrl}]`;
+      }
+
+      // テキストエリアに挿入
+      const textarea = e.target;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+
+      textarea.value = text.substring(0, start) + insertText + text.substring(end);
+
+      // カーソル位置を調整
+      const newPosition = start + insertText.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+
+      // inputイベントを発火（Reactなどのフレームワークに変更を通知）
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+}
+
+// コメント欄の監視と設定
+function setupCommentHandlers() {
+  // JIRAのコメント欄を探す
+  const commentTextareas = document.querySelectorAll(
+    'textarea#comment, ' +
+    'textarea.wiki-textfield, ' +
+    'textarea[name="comment"], ' +
+    'div.wiki-edit-content textarea'
+  );
+
+  commentTextareas.forEach(textarea => {
+    // すでにハンドラーが設定されている場合はスキップ
+    if (textarea.hasAttribute('data-paste-handler-added')) {
+      return;
+    }
+
+    // ペーストイベントハンドラーを追加
+    textarea.addEventListener('paste', handleCommentPaste);
+    textarea.setAttribute('data-paste-handler-added', 'true');
+  });
+}
 
 // URLの変更を検知（SPAのページ遷移対応）
 let lastUrl = location.href;
@@ -326,6 +400,9 @@ new MutationObserver(() => {
     setTimeout(() => {
       addJiraDetailCopyButton();
       addJiraListCopyButtons();
+      setupCommentHandlers();
     }, 500);
   }
+  // 新しいコメント欄が追加される可能性もあるので定期的にチェック
+  setupCommentHandlers();
 }).observe(document, {subtree: true, childList: true});
