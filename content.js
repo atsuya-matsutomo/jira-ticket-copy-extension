@@ -28,15 +28,6 @@ function addJiraListCopyButtons() {
         ticketNumber = match[1];
         break;
       }
-      // リンクからも探す
-      const link = cell.querySelector('a[href*="/browse/"]');
-      if (link) {
-        const linkMatch = link.href.match(/\/browse\/([A-Z]+-\d+)/);
-        if (linkMatch) {
-          ticketNumber = linkMatch[1];
-          break;
-        }
-      }
     }
 
     // merged-cellを優先的に使用（ボタン配置場所）
@@ -117,22 +108,29 @@ function addJiraListCopyButtons() {
   });
 }
 
+// 現在のチケット番号を取得する関数
+function getCurrentTicketNumber() {
+  // パンくずリストから確認（最も信頼できる）
+  const breadcrumb = document.querySelector('nav[aria-label="Breadcrumbs"] li:last-child');
+  if (breadcrumb) {
+    const match = breadcrumb.textContent.match(/([A-Z]+-\d+)/);
+    if (match) return match[1];
+  }
+
+  // URLから取得
+  const pathMatch = window.location.pathname.match(/\/browse\/([A-Z]+-\d+)/);
+  if (pathMatch) return pathMatch[1];
+
+  const paramMatch = window.location.search.match(/selectedIssue=([A-Z]+-\d+)/);
+  if (paramMatch) return paramMatch[1];
+
+  return null;
+}
+
 // JIRA詳細ページ用のコピーボタンを追加する関数
 function addJiraDetailCopyButton() {
-  // JIRAチケットページかどうかチェック（複数のURLパターンに対応）
-  const pathMatch = window.location.pathname.match(/\/browse\/([A-Z]+-\d+)/);
-  const paramMatch = window.location.search.match(/selectedIssue=([A-Z]+-\d+)/);
-
-  let ticketNumber = null;
-  if (pathMatch) {
-    ticketNumber = pathMatch[1];
-  } else if (paramMatch) {
-    ticketNumber = paramMatch[1];
-  }
-
-  if (!ticketNumber) {
-    return;
-  }
+  const ticketNumber = getCurrentTicketNumber();
+  if (!ticketNumber) return;
 
   // すでにボタンが存在する場合は何もしない
   if (document.querySelector('#jira-copy-btn')) {
@@ -222,16 +220,17 @@ function addJiraDetailCopyButton() {
     `;
   }
 
-  // クリックイベントを追加
+  // クリックイベントを追加（動的に現在の情報を取得）
   copyBtn.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    // チケットタイトルを取得
-    const title = titleElement.textContent.trim();
-    // フォーマット: [チケット番号] タイトル
-    const formattedTitle = `[${ticketNumber}] ${title}`;
-    // シンプルなURLを生成（クエリパラメータなし）
-    const simpleUrl = `${window.location.origin}/browse/${ticketNumber}`;
+    // クリック時に最新の情報を取得
+    const currentTicketNumber = getCurrentTicketNumber();
+    const currentTitleElement = document.querySelector('h1[data-testid*="summary"]') || document.querySelector('h1');
+    const currentTitle = currentTitleElement ? currentTitleElement.textContent.trim() : '';
+
+    const formattedTitle = `[${currentTicketNumber}] ${currentTitle}`;
+    const simpleUrl = `${window.location.origin}/browse/${currentTicketNumber}`;
     const htmlContent = `<a href="${simpleUrl}">${formattedTitle}</a>`;
     const plainText = formattedTitle;
 
@@ -297,112 +296,97 @@ function addJiraDetailCopyButton() {
   }
 }
 
-// DOM変更を監視
-const observer = new MutationObserver(() => {
-  addJiraDetailCopyButton();
-  addJiraListCopyButtons();
-});
-
-// 監視を開始
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
-
-// 初回実行（ページロード時とURL変更時の両方に対応）
-setTimeout(() => {
-  addJiraDetailCopyButton();
-  addJiraListCopyButtons();
-  setupCommentHandlers();
-}, 1000);
-addJiraDetailCopyButton();
-addJiraListCopyButtons();
-setupCommentHandlers();
-
-// JIRAのコメント欄でのペースト処理を改善
+// ペースト処理（JIRA記法に変換）
 function handleCommentPaste(e) {
-  // クリップボードからHTMLデータを取得
   const htmlData = e.clipboardData.getData('text/html');
-
   if (htmlData) {
-    // HTMLを解析してリンクを抽出
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlData;
-
-    // リンクを探す
     const link = tempDiv.querySelector('a');
     if (link) {
       e.preventDefault();
-
       const linkText = link.textContent;
       const linkUrl = link.href;
-
-      // [XXXX-123] タイトル 形式のテキストかチェック
       const ticketMatch = linkText.match(/^\[([A-Z]+-\d+)\]\s(.+)$/);
 
       let insertText;
       if (ticketMatch) {
-        // JIRAのチケットリンクの場合、JIRA記法で挿入
-        const ticketNumber = ticketMatch[1];
-        const title = ticketMatch[2];
-        insertText = `[${ticketNumber}|${linkUrl}] ${title}`;
+        insertText = `[${ticketMatch[1]}|${linkUrl}] ${ticketMatch[2]}`;
       } else {
-        // 通常のリンクの場合
         insertText = `[${linkText}|${linkUrl}]`;
       }
 
-      // テキストエリアに挿入
       const textarea = e.target;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const text = textarea.value;
-
       textarea.value = text.substring(0, start) + insertText + text.substring(end);
-
-      // カーソル位置を調整
       const newPosition = start + insertText.length;
       textarea.setSelectionRange(newPosition, newPosition);
-
-      // inputイベントを発火（Reactなどのフレームワークに変更を通知）
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
 }
 
-// コメント欄の監視と設定
+// コメント欄の設定
 function setupCommentHandlers() {
-  // JIRAのコメント欄を探す
-  const commentTextareas = document.querySelectorAll(
-    'textarea#comment, ' +
-    'textarea.wiki-textfield, ' +
-    'textarea[name="comment"], ' +
-    'div.wiki-edit-content textarea'
-  );
-
-  commentTextareas.forEach(textarea => {
-    // すでにハンドラーが設定されている場合はスキップ
-    if (textarea.hasAttribute('data-paste-handler-added')) {
-      return;
+  const textareas = document.querySelectorAll('textarea#comment, textarea.wiki-textfield');
+  textareas.forEach(textarea => {
+    if (!textarea.hasAttribute('data-paste-handler-added')) {
+      textarea.addEventListener('paste', handleCommentPaste);
+      textarea.setAttribute('data-paste-handler-added', 'true');
     }
-
-    // ペーストイベントハンドラーを追加
-    textarea.addEventListener('paste', handleCommentPaste);
-    textarea.setAttribute('data-paste-handler-added', 'true');
   });
 }
 
-// URLの変更を検知（SPAのページ遷移対応）
+// デバウンス付きMutationObserver
+let observerTimeout;
+const observer = new MutationObserver(() => {
+  clearTimeout(observerTimeout);
+  observerTimeout = setTimeout(() => {
+    addJiraDetailCopyButton();
+    addJiraListCopyButtons();
+    setupCommentHandlers();
+  }, 300);
+});
+
+observer.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+// 初回実行（少し遅延させて安定性を確保）
+setTimeout(() => {
+  addJiraDetailCopyButton();
+  addJiraListCopyButtons();
+  setupCommentHandlers();
+}, 500);
+
+// URL変更検知
 let lastUrl = location.href;
 new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
     lastUrl = url;
+    // ページ遷移時は既存ボタンとラッパーを完全に削除
+    const detailBtn = document.querySelector('#jira-copy-btn');
+    if (detailBtn) {
+      // ラッパー（role="presentation"のdiv）も含めて削除
+      const wrapper = detailBtn.closest('div[role="presentation"]');
+      if (wrapper && wrapper.parentElement?.classList.contains('css-m1gh8r')) {
+        wrapper.remove();
+      } else {
+        detailBtn.remove();
+      }
+    }
+
+    // リストボタンも削除
+    document.querySelectorAll('.jira-list-copy-btn').forEach(btn => btn.remove());
+
     setTimeout(() => {
       addJiraDetailCopyButton();
       addJiraListCopyButtons();
       setupCommentHandlers();
     }, 500);
   }
-  // 新しいコメント欄が追加される可能性もあるので定期的にチェック
-  setupCommentHandlers();
 }).observe(document, {subtree: true, childList: true});
